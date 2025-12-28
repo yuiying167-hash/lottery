@@ -1,0 +1,17 @@
+name: Test Lotto Crawler
+
+on: workflow_dispatch # 수동 실행 버튼만 만듦
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: 파이썬 설치
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    - name: 라이브러리 설치
+      run: pip install requests beautifulsoup4
+    - name: 크롤러 실행해보기
+      run: python lotto_crawler.py
