@@ -1,33 +1,42 @@
 import requests
 from bs4 import BeautifulSoup
-import datetime
 
 # 태국 Sanook 복권 페이지 URL
 url = "https://news.sanook.com/lotto/"
 
 def get_latest_lotto():
     try:
-        response = requests.get(url)
+        # ⭐️ 중요: 로봇이 아닌 척하기 위한 헤더 추가
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        response = requests.get(url, headers=headers) # 헤더를 같이 보냄
+        response.encoding = 'utf-8' # 한글/태국어 깨짐 방지
+        
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        # 최신 회차 날짜 가져오기
-        date_text = soup.find('h2', class_='lotto-check__title').text.strip()
-        
-        # 1등 당첨 번호 (6자리)
-        first_prize = soup.find('strong', class_='lotto-check__number').text.strip()
-        
-        # 마지막 2자리 숫자 (가장 인기 많음)
-        last_two = soup.find_all('strong', class_='lotto-check__number')[3].text.strip()
-        
-        # 마지막 3자리 숫자들 (여러 개)
-        last_three_tags = soup.find_all('strong', class_='lotto-check__number')
-        last_three = [tag.text.strip() for tag in last_three_tags[1:3]] # 보통 2개
+        # --- (디버깅용) 사이트가 제대로 열렸는지 확인 ---
+        # print(soup.title.text) 
 
+        # 1. 날짜 가져오기 (구조가 자주 바뀌니 예외처리 강화)
+        title_tag = soup.find('h2', class_='lotto-check__title')
+        if title_tag:
+            date_text = title_tag.text.strip()
+        else:
+            date_text = "날짜 정보 없음"
+
+        # 2. 1등 번호 가져오기
+        first_prize_tag = soup.find('strong', class_='lotto-check__number')
+        if first_prize_tag:
+            first_prize = first_prize_tag.text.strip()
+        else:
+            first_prize = "???"
+
+        # 3. 데이터 반환
         return {
             "date": date_text,
-            "first_prize": first_prize,
-            "last_two": last_two,
-            "last_three": last_three
+            "first_prize": first_prize
         }
 
     except Exception as e:
@@ -38,10 +47,8 @@ def get_latest_lotto():
 if __name__ == "__main__":
     data = get_latest_lotto()
     if data:
-        print("🎉 최신 태국 복권 정보 수집 성공!")
+        print("🎉 크롤링 성공!")
         print(f"날짜: {data['date']}")
         print(f"1등 번호: {data['first_prize']}")
-        print(f"2자리 행운 숫자: {data['last_two']}")
-        print(f"3자리 숫자들: {data['last_three']}")
     else:
-        print("데이터를 가져오지 못했습니다.")
+        print("실패 ㅠㅠ")
