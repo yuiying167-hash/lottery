@@ -3,12 +3,9 @@ import datetime
 import urllib3
 import json
 
-# 보안 경고 숨기기
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# ==========================================
-# 1. 데이터 수집 (태국 정부 공식 API)
-# ==========================================
+# 1. 데이터 수집
 def get_lotto_data():
     api_url = "https://www.glo.or.th/api/lottery/getLatestLottery"
     try:
@@ -32,23 +29,18 @@ def get_lotto_data():
         print(f"Error fetching data: {e}")
         return None
 
-# ==========================================
-# 2. [NEW] 오늘의 행운 정보 생성 함수
-# ==========================================
+# 2. 행운 정보 (한글 제거됨)
 def get_daily_lucky_info():
-    # 요일 구하기 (0:월, 1:화, ..., 6:일)
     weekday = datetime.datetime.now().weekday()
     
-    # 요일별 데이터 (태국 문화 기반)
-    # 색상: (이름, CSS코드), 차번호 끝자리
     daily_data = [
-        {"day": "วันจันทร์ (월요일)", "color_name": "เหลือง (노랑)", "color_code": "#FFD700", "car_num": "2, 5"},
-        {"day": "วันอังคาร (화요일)", "color_name": "ชมพู (분홍)", "color_code": "#FF69B4", "car_num": "3, 0"},
-        {"day": "วันพุธ (수요일)", "color_name": "เขียว (초록)", "color_code": "#4CAF50", "car_num": "4, 8"},
-        {"day": "วันพฤหัสบดี (목요일)", "color_name": "ส้ม (주황)", "color_code": "#FF9800", "car_num": "1, 5"},
-        {"day": "วันศุกร์ (금요일)", "color_name": "ฟ้า (하늘)", "color_code": "#00BFFF", "car_num": "6, 9"},
-        {"day": "วันเสาร์ (토요일)", "color_name": "ม่วง (보라)", "color_code": "#9C27B0", "car_num": "7, 3"},
-        {"day": "วันอาทิตย์ (일요일)", "color_name": "แดง (빨강)", "color_code": "#F44336", "car_num": "1, 8"},
+        {"day": "วันจันทร์", "color_name": "เหลือง", "color_code": "#FFD700", "car_num": "2, 5"},
+        {"day": "วันอังคาร", "color_name": "ชมพู", "color_code": "#FF69B4", "car_num": "3, 0"},
+        {"day": "วันพุธ", "color_name": "เขียว", "color_code": "#4CAF50", "car_num": "4, 8"},
+        {"day": "วันพฤหัสบดี", "color_name": "ส้ม", "color_code": "#FF9800", "car_num": "1, 5"},
+        {"day": "วันศุกร์", "color_name": "ฟ้า", "color_code": "#00BFFF", "car_num": "6, 9"},
+        {"day": "วันเสาร์", "color_name": "ม่วง", "color_code": "#9C27B0", "car_num": "7, 3"},
+        {"day": "วันอาทิตย์", "color_name": "แดง", "color_code": "#F44336", "car_num": "1, 8"},
     ]
     
     today_info = daily_data[weekday]
@@ -61,14 +53,14 @@ def get_daily_lucky_info():
         </div>
         <div class="lucky-content">
             <div class="lucky-item">
-                <span class="lucky-label">สีมงคล (행운색)</span>
+                <span class="lucky-label">สีมงคล</span>
                 <div class="lucky-value">
                     <span class="color-circle" style="background-color: {today_info['color_code']};"></span>
                     {today_info['color_name']}
                 </div>
             </div>
             <div class="lucky-item">
-                <span class="lucky-label">เลขทะเบียนรถ (차번호)</span>
+                <span class="lucky-label">เลขทะเบียนรถ</span>
                 <div class="lucky-value">
                     🚗 ลงท้าย {today_info['car_num']}
                 </div>
@@ -77,9 +69,7 @@ def get_daily_lucky_info():
     </section>
     '''
 
-# ==========================================
-# 3. 통계 HTML 생성 함수
-# ==========================================
+# 3. 통계 HTML (한글 제거됨)
 def create_stats_html():
     stats_data = {
         'hot_numbers': [(79, 9), (85, 8), (98, 8)],
@@ -124,15 +114,15 @@ def create_stats_html():
     <section class="stats-section">
         <div class="stats-header">
             <span class="emoji">📊</span>
-            <h3>สถิติหวย 10 ปี (10년 통계)</h3>
+            <h3>สถิติหวยย้อนหลัง 10 ปี</h3>
         </div>
         <div class="hot-cold-container">
             <div class="hot-section">
-                <div class="section-label">🔥 HOT</div>
+                <div class="section-label">🔥 HOT เลขออกบ่อย</div>
                 <div class="stats-balls">{hot_balls}</div>
             </div>
             <div class="cold-section">
-                <div class="section-label">❄️ COLD</div>
+                <div class="section-label">❄️ COLD เลขออกน้อย</div>
                 <div class="stats-balls">{cold_balls}</div>
             </div>
         </div>
@@ -144,9 +134,7 @@ def create_stats_html():
     </section>
     '''
 
-# ==========================================
 # 4. 전체 HTML 조립
-# ==========================================
 def create_html(data):
     if not data:
         return "<h1>Data Error / กำลังปรับปรุงระบบ</h1>"
@@ -163,9 +151,8 @@ def create_html(data):
             last3_balls_html += f'<div class="ball ball-3rd" role="listitem">{char}</div>'
         last3_balls_html += '</div>'
 
-    # 각 섹션 HTML 생성
     stats_section_html = create_stats_html()
-    daily_lucky_html = get_daily_lucky_info() # [NEW] 행운 정보 추가
+    daily_lucky_html = get_daily_lucky_info()
 
     html = f"""
 <!DOCTYPE html>
@@ -177,7 +164,6 @@ def create_html(data):
     <meta name="description" content="ตรวจหวย ผลสลากกินแบ่งรัฐบาลล่าสุด ตรวจหวยย้อนหลัง เลขเด็ด สถิติหวย อัปเดตฟรีรวดเร็วทันใจ">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎱</text></svg>">
     
-    <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3198582468837090"
          crossorigin="anonymous"></script>
 
@@ -221,7 +207,6 @@ def create_html(data):
         .ball-2nd {{ background: var(--ball-2nd); color: white; }}
         .ball-3rd {{ background: var(--ball-3rd); }}
 
-        /* 행운 정보 섹션 스타일 [NEW] */
         .lucky-daily-section {{ background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; margin: 20px 0; }}
         .lucky-header {{ display: flex; align-items: center; gap: 8px; margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 10px; }}
         .lucky-header h3 {{ font-size: 1.1em; margin: 0; color: var(--text-primary); }}
@@ -231,7 +216,6 @@ def create_html(data):
         .lucky-value {{ font-size: 0.95em; font-weight: bold; color: var(--gold-light); display: flex; align-items: center; justify-content: center; gap: 6px; }}
         .color-circle {{ width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,0.3); }}
 
-        /* 통계 섹션 스타일 */
         .stats-section {{ background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 24px; box-shadow: var(--glass-shadow); margin-top: 16px; }}
         .stats-header {{ display: flex; align-items: center; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 10px; }}
         .stats-header h3 {{ font-size: 1.1em; color: var(--text-primary); margin: 0; }}
@@ -258,7 +242,6 @@ def create_html(data):
         
         .footer {{ text-align: center; padding: 20px; font-size: 0.75em; color: var(--text-muted); }}
         .footer a {{ color: var(--gold-primary); text-decoration: none; }}
-        
         .ad-container {{ background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px; display: flex; justify-content: center; align-items: center; min-height: 100px; }}
         .ad-label {{ display: block; text-align: right; font-size: 0.6em; color: var(--text-muted); margin-bottom: 5px; }}
     </style>
@@ -281,22 +264,21 @@ def create_html(data):
             </header>
 
             <section class="result-section">
-                <span class="result-label">🏆 รางวัลที่ 1 (1등)</span>
+                <span class="result-label">🏆 รางวัลที่ 1</span>
                 <div class="balls-container">{first_balls_html}</div>
             </section>
 
             <section class="result-section">
-                <span class="result-label">เลขท้าย 2 ตัว (2자리)</span>
+                <span class="result-label">เลขท้าย 2 ตัว</span>
                 <div class="balls-container">{last2_balls_html}</div>
             </section>
 
             <section class="result-section">
-                <span class="result-label">เลขท้าย 3 ตัว (3자리)</span>
+                <span class="result-label">เลขท้าย 3 ตัว</span>
                 <div class="balls-container">{last3_balls_html}</div>
             </section>
         </main>
 
-        <!-- ✅ [NEW] 오늘의 행운 정보 섹션 (중간 배치) -->
         {daily_lucky_html}
 
         <div class="ad-container" style="margin-bottom: 20px;">
@@ -325,7 +307,6 @@ def create_html(data):
     """
     return html
 
-# --- 메인 실행 ---
 if __name__ == "__main__":
     print("Collecting data...")
     data = get_lotto_data()
