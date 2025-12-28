@@ -1,54 +1,51 @@
 import requests
 from bs4 import BeautifulSoup
 
-# 태국 Sanook 복권 페이지 URL
 url = "https://news.sanook.com/lotto/"
 
 def get_latest_lotto():
     try:
-        # ⭐️ 중요: 로봇이 아닌 척하기 위한 헤더 추가
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
-        
-        response = requests.get(url, headers=headers) # 헤더를 같이 보냄
-        response.encoding = 'utf-8' # 한글/태국어 깨짐 방지
-        
+        response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        # --- (디버깅용) 사이트가 제대로 열렸는지 확인 ---
-        # print(soup.title.text) 
+        # 1. 날짜 찾기 (h3 태그 안에 있음)
+        # 보통 "ตรวจหวย 16 ธันวาคม 2568" 이런 식으로 되어 있음
+        date_element = soup.select_one('h3.lotto-check__title') 
+        if not date_element:
+             # 만약 h3가 없으면 h2로 시도 (구조 변경 대비)
+            date_element = soup.select_one('h2.lotto-check__title')
+            
+        date_text = date_element.text.strip() if date_element else "날짜 못찾음"
 
-        # 1. 날짜 가져오기 (구조가 자주 바뀌니 예외처리 강화)
-        title_tag = soup.find('h2', class_='lotto-check__title')
-        if title_tag:
-            date_text = title_tag.text.strip()
+        # 2. 1등 번호 찾기 (strong 태그 중 첫 번째 것)
+        # Sanook은 당첨 번호를 <strong class="lotto-check__number">...</strong> 안에 넣음
+        numbers = soup.select('strong.lotto-check__number')
+        
+        if len(numbers) > 0:
+            first_prize = numbers[0].text.strip() # 1등
+            last_two = numbers[3].text.strip()    # 2자리 번호 (보통 4번째에 있음)
         else:
-            date_text = "날짜 정보 없음"
+            first_prize = "번호 못찾음"
+            last_two = "???"
 
-        # 2. 1등 번호 가져오기
-        first_prize_tag = soup.find('strong', class_='lotto-check__number')
-        if first_prize_tag:
-            first_prize = first_prize_tag.text.strip()
-        else:
-            first_prize = "???"
-
-        # 3. 데이터 반환
         return {
             "date": date_text,
-            "first_prize": first_prize
+            "first_prize": first_prize,
+            "last_two": last_two
         }
 
     except Exception as e:
-        print(f"에러 발생: {e}")
+        print(f"에러 상세: {e}")
         return None
 
-# 실행 및 테스트
 if __name__ == "__main__":
     data = get_latest_lotto()
     if data:
-        print("🎉 크롤링 성공!")
-        print(f"날짜: {data['date']}")
-        print(f"1등 번호: {data['first_prize']}")
+        print(f"📅 날짜: {data['date']}")
+        print(f"🥇 1등: {data['first_prize']}")
+        print(f"✌️ 2자리: {data['last_two']}")
     else:
-        print("실패 ㅠㅠ")
+        print("데이터 수집 실패")
