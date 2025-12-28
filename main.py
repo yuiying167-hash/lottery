@@ -3,9 +3,10 @@ import datetime
 import urllib3
 import json
 
+# 보안 경고 숨기기
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# 1. 데이터 수집
+# 1. 태국 정부 공식 데이터 가져오기
 def get_lotto_data():
     api_url = "https://www.glo.or.th/api/lottery/getLatestLottery"
     try:
@@ -29,7 +30,9 @@ def get_lotto_data():
         print(f"Error fetching data: {e}")
         return None
 
-# 2. 행운 정보 (한글 제거됨)
+# ==========================================
+# 2. [NEW] 오늘의 행운 정보 생성 함수
+# ==========================================
 def get_daily_lucky_info():
     weekday = datetime.datetime.now().weekday()
     
@@ -69,7 +72,9 @@ def get_daily_lucky_info():
     </section>
     '''
 
-# 3. 통계 HTML (한글 제거됨)
+# ==========================================
+# 3. 통계 HTML 생성 함수
+# ==========================================
 def create_stats_html():
     stats_data = {
         'hot_numbers': [(79, 9), (85, 8), (98, 8)],
@@ -134,7 +139,9 @@ def create_stats_html():
     </section>
     '''
 
-# 4. 전체 HTML 조립
+# ==========================================
+# 4. 전체 HTML 조립 (SNS 버튼 + 궁합 버튼 추가)
+# ==========================================
 def create_html(data):
     if not data:
         return "<h1>Data Error / กำลังปรับปรุงระบบ</h1>"
@@ -164,6 +171,10 @@ def create_html(data):
     <meta name="description" content="ตรวจหวย ผลสลากกินแบ่งรัฐบาลล่าสุด ตรวจหวยย้อนหลัง เลขเด็ด สถิติหวย อัปเดตฟรีรวดเร็วทันใจ">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎱</text></svg>">
     
+    <!-- 아이콘 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3198582468837090"
          crossorigin="anonymous"></script>
 
@@ -244,6 +255,23 @@ def create_html(data):
         .footer a {{ color: var(--gold-primary); text-decoration: none; }}
         .ad-container {{ background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px; display: flex; justify-content: center; align-items: center; min-height: 100px; }}
         .ad-label {{ display: block; text-align: right; font-size: 0.6em; color: var(--text-muted); margin-bottom: 5px; }}
+
+        /* [NEW] SNS 버튼 스타일 */
+        .share-section-home {{ text-align: center; margin: 30px 0 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }}
+        .share-title {{ color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 12px; }}
+        .share-buttons {{ display: flex; gap: 12px; justify-content: center; }}
+        .share-btn {{ width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; color: white; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.1); cursor: pointer; transition: all 0.3s ease; font-size: 1.2rem; }}
+        .share-btn:hover {{ transform: translateY(-3px) scale(1.05); }}
+        .share-facebook:hover {{ background: #1877F2; border-color: #1877F2; box-shadow: 0 0 15px rgba(24,119,242,0.5); }}
+        .share-line:hover {{ background: #06C755; border-color: #06C755; box-shadow: 0 0 15px rgba(6,199,85,0.5); }}
+        .share-twitter:hover {{ background: #000; border-color: #333; box-shadow: 0 0 15px rgba(255,255,255,0.3); }}
+        .share-copy:hover {{ background: #a855f7; border-color: #a855f7; box-shadow: 0 0 15px rgba(168,85,247,0.5); }}
+        .copy-toast {{ position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(16,185,129,0.9); color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; opacity: 0; visibility: hidden; transition: all 0.3s; z-index: 1000; backdrop-filter: blur(5px); }}
+        .copy-toast.show {{ opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }}
+
+        /* [NEW] 궁합 버튼 스타일 */
+        .btn-zodiac {{ display: block; background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: white; text-decoration: none; padding: 15px; border-radius: 15px; font-weight: bold; text-align: center; margin: 20px 0; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); transition: transform 0.2s; }}
+        .btn-zodiac:hover {{ transform: translateY(-3px); }}
     </style>
 </head>
 <body>
@@ -288,6 +316,24 @@ def create_html(data):
 
         {stats_section_html}
 
+        <!-- [NEW] 궁합 사이트 홍보 버튼 -->
+        <a href="https://zodiac.spattra.com" target="_blank" class="btn-zodiac">
+            💘 เช็คดวงความรัก (궁합 확인하기) <br>
+            <span style="font-size:0.9em; opacity:0.9;">12 นักษัตร ชาย-หญิง / LGBTQ+</span>
+        </a>
+
+        <!-- [NEW] SNS 공유 섹션 -->
+        <div class="share-section-home">
+            <p class="share-title">แชร์ให้เพื่อน</p>
+            <div class="share-buttons">
+                <a href="https://www.facebook.com/sharer/sharer.php?u=" onclick="this.href+=encodeURIComponent(window.location.href);return true;" target="_blank" class="share-btn share-facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://social-plugins.line.me/lineit/share?url=" onclick="this.href+=encodeURIComponent(window.location.href);return true;" target="_blank" class="share-btn share-line"><i class="fab fa-line"></i></a>
+                <a href="https://twitter.com/intent/tweet?url=" onclick="this.href+=encodeURIComponent(window.location.href)+'&text='+encodeURIComponent(document.title);return true;" target="_blank" class="share-btn share-twitter"><i class="fab fa-x-twitter"></i></a>
+                <button onclick="copyLink()" class="share-btn share-copy"><i class="fas fa-link"></i></button>
+            </div>
+            <div id="copy-toast" class="copy-toast">✅ คัดลอกแล้ว!</div>
+        </div>
+
         <footer class="footer">
             <p>อัปเดตอัตโนมัติ: {now}</p>
             <p>Powered by <a href="#">LotteryBot</a></p>
@@ -302,11 +348,22 @@ def create_html(data):
 
 </div>
 
+<script>
+    function copyLink() {{
+        navigator.clipboard.writeText(window.location.href).then(() => {{
+            const t = document.getElementById('copy-toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }});
+    }}
+</script>
+
 </body>
 </html>
     """
     return html
 
+# --- 메인 실행 ---
 if __name__ == "__main__":
     print("Collecting data...")
     data = get_lotto_data()
