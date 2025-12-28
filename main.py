@@ -88,16 +88,16 @@ def create_stats_html():
         </div>
         <div class="hot-cold-container">
             <div class="hot-section">
-                <div class="section-label">🔥 HOT (자주 나옴)</div>
+                <div class="section-label">🔥 HOT </div>
                 <div class="stats-balls">{hot_balls}</div>
             </div>
             <div class="cold-section">
-                <div class="section-label">❄️ COLD (안 나옴)</div>
+                <div class="section-label">❄️ COLD </div>
                 <div class="stats-balls">{cold_balls}</div>
             </div>
         </div>
         <div class="mini-chart">
-            <div class="chart-title">TOP 5 เลขท้าย 2 ตัว (Top 5 2자리)</div>
+            <div class="chart-title">TOP 5 เลขท้าย 2 ตัว </div>
             <div class="chart-bar-container">{chart_bars}</div>
         </div>
         <div class="stats-footer">* ข้อมูล พ.ศ. 2557-2567</div>
@@ -313,17 +313,17 @@ def create_html(data):
             </header>
 
             <section class="result-section">
-                <span class="result-label">🏆 รางวัลที่ 1 (1등)</span>
+                <span class="result-label">🏆 รางวัลที่ 1 </span>
                 <div class="balls-container">{first_balls_html}</div>
             </section>
 
             <section class="result-section">
-                <span class="result-label">เลขท้าย 2 ตัว (2자리)</span>
+                <span class="result-label">เลขท้าย 2 ตัว </span>
                 <div class="balls-container">{last2_balls_html}</div>
             </section>
 
             <section class="result-section">
-                <span class="result-label">เลขท้าย 3 ตัว (3자리)</span>
+                <span class="result-label">เลขท้าย 3 ตัว </span>
                 <div class="balls-container">{last3_balls_html}</div>
             </section>
         </main>
