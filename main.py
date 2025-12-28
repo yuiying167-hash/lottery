@@ -84,7 +84,7 @@ def create_stats_html():
     <section class="stats-section">
         <div class="stats-header">
             <span class="emoji">📊</span>
-            <h3>สถิติหวย 10 ปี (10년 통계)</h3>
+            <h3>สถิติหวย 10 ปี </h3>
         </div>
         <div class="hot-cold-container">
             <div class="hot-section">
