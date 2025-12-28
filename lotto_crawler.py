@@ -1,46 +1,56 @@
 import requests
-from bs4 import BeautifulSoup
+import json
 
-# 타겟 변경: Mthai (구조가 단순함)
-url = "https://lotto.mthai.com/"
+# 태국 정부 복권 공식 API 주소 (숨겨진 주소)
+api_url = "https://www.glo.or.th/api/lottery/getLatestLottery"
 
 def get_latest_lotto():
     try:
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124 Safari/537.36',
+            'Referer': 'https://www.glo.or.th/', # 정부 사이트에서 온 척하기
+            'Origin': 'https://www.glo.or.th'
         }
-        response = requests.get(url, headers=headers)
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        # 1. 날짜 가져오기
-        # Mthai는 h4 태그 안에 날짜가 있음
-        date_element = soup.find('h4')
-        date_text = date_element.text.strip() if date_element else "날짜 못찾음"
-
-        # 2. 1등 번호 (li.lot-first span)
-        first_prize_tag = soup.select_one('li.lot-first span')
-        first_prize = first_prize_tag.text.strip() if first_prize_tag else "못찾음"
-
-        # 3. 2자리 번호 (li.lot-last2 span)
-        last_two_tag = soup.select_one('li.lot-last2 span')
-        last_two = last_two_tag.text.strip() if last_two_tag else "못찾음"
         
-        # 4. 3자리 번호들 (li.lot-last3 span) - 보통 2개 또는 4개
-        last_three_tags = soup.select('li.lot-last3 span')
-        last_threes = [tag.text.strip() for tag in last_three_tags]
-
-        return {
-            "date": date_text,
-            "first_prize": first_prize,
-            "last_two": last_two,
-            "last_threes": last_threes
-        }
+        # 데이터를 요청합니다 (POST 방식)
+        response = requests.post(api_url, headers=headers, verify=False) # verify=False는 SSL 에러 방지용
+        
+        if response.status_code == 200:
+            data = response.json() # JSON 데이터로 변환
+            
+            # 데이터 구조 파싱
+            date_thai = data['response']['date'] # 날짜
+            
+            # 당첨 번호들 추출 (data 리스트 안에 있음)
+            # 1등: data[0]
+            first_prize = data['response']['data']['first']['number'][0]['value']
+            
+            # 2자리 번호 (보통 last2)
+            last_two = data['response']['data']['last2']['number'][0]['value']
+            
+            # 3자리 번호들 (last3f, last3b)
+            last_three_front = [item['value'] for item in data['response']['data']['last3f']['number']]
+            last_three_back = [item['value'] for item in data['response']['data']['last3b']['number']]
+            
+            return {
+                "date": date_thai,
+                "first_prize": first_prize,
+                "last_two": last_two,
+                "last_threes": last_three_front + last_three_back
+            }
+        else:
+            print(f"API 호출 실패: 상태 코드 {response.status_code}")
+            return None
 
     except Exception as e:
         print(f"에러 상세: {e}")
         return None
 
 if __name__ == "__main__":
+    # 보안 경고 메시지 숨기기 (깔끔하게 보려고)
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    
     data = get_latest_lotto()
     if data:
         print(f"📅 날짜: {data['date']}")
