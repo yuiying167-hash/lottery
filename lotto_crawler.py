@@ -1,40 +1,39 @@
 import requests
 from bs4 import BeautifulSoup
 
-url = "https://news.sanook.com/lotto/"
+# 타겟 변경: Mthai (구조가 단순함)
+url = "https://lotto.mthai.com/"
 
 def get_latest_lotto():
     try:
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124 Safari/537.36'
         }
         response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        # 1. 날짜 찾기 (h3 태그 안에 있음)
-        # 보통 "ตรวจหวย 16 ธันวาคม 2568" 이런 식으로 되어 있음
-        date_element = soup.select_one('h3.lotto-check__title') 
-        if not date_element:
-             # 만약 h3가 없으면 h2로 시도 (구조 변경 대비)
-            date_element = soup.select_one('h2.lotto-check__title')
-            
+        # 1. 날짜 가져오기
+        # Mthai는 h4 태그 안에 날짜가 있음
+        date_element = soup.find('h4')
         date_text = date_element.text.strip() if date_element else "날짜 못찾음"
 
-        # 2. 1등 번호 찾기 (strong 태그 중 첫 번째 것)
-        # Sanook은 당첨 번호를 <strong class="lotto-check__number">...</strong> 안에 넣음
-        numbers = soup.select('strong.lotto-check__number')
+        # 2. 1등 번호 (li.lot-first span)
+        first_prize_tag = soup.select_one('li.lot-first span')
+        first_prize = first_prize_tag.text.strip() if first_prize_tag else "못찾음"
+
+        # 3. 2자리 번호 (li.lot-last2 span)
+        last_two_tag = soup.select_one('li.lot-last2 span')
+        last_two = last_two_tag.text.strip() if last_two_tag else "못찾음"
         
-        if len(numbers) > 0:
-            first_prize = numbers[0].text.strip() # 1등
-            last_two = numbers[3].text.strip()    # 2자리 번호 (보통 4번째에 있음)
-        else:
-            first_prize = "번호 못찾음"
-            last_two = "???"
+        # 4. 3자리 번호들 (li.lot-last3 span) - 보통 2개 또는 4개
+        last_three_tags = soup.select('li.lot-last3 span')
+        last_threes = [tag.text.strip() for tag in last_three_tags]
 
         return {
             "date": date_text,
             "first_prize": first_prize,
-            "last_two": last_two
+            "last_two": last_two,
+            "last_threes": last_threes
         }
 
     except Exception as e:
@@ -47,5 +46,6 @@ if __name__ == "__main__":
         print(f"📅 날짜: {data['date']}")
         print(f"🥇 1등: {data['first_prize']}")
         print(f"✌️ 2자리: {data['last_two']}")
+        print(f"🔢 3자리: {data['last_threes']}")
     else:
-        print("데이터 수집 실패")
+        print("수집 실패")
