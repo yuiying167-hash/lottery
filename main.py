@@ -2,20 +2,42 @@ import requests
 import datetime
 import urllib3
 import json
+import pytz  # pip install pytz (필수: 시간대 처리용)
 
 # 보안 경고 숨기기
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# 1. 태국 정부 공식 데이터 가져오기
+# ==========================================
+# 1. 태국 정부 공식 데이터 가져오기 (Session 적용)
+# ==========================================
 def get_lotto_data():
     api_url = "https://www.glo.or.th/api/lottery/getLatestLottery"
+    
+    # 세션을 사용하여 연결 안정성 확보
+    session = requests.Session()
+    
     try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0',
-            'Referer': 'https://www.glo.or.th/',
-            'Origin': 'https://www.glo.or.th'
+        # 1. 메인 페이지 접속 흉내 (쿠키 획득)
+        headers_main = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Referer': 'https://www.glo.or.th/'
         }
-        response = requests.post(api_url, headers=headers, verify=False)
+        session.get("https://www.glo.or.th/", headers=headers_main, verify=False, timeout=10)
+
+        # 2. 실제 데이터 요청
+        headers_api = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Referer': 'https://www.glo.or.th/',
+            'Origin': 'https://www.glo.or.th',
+            'Content-Type': 'application/json'
+        }
+        
+        response = session.post(api_url, headers=headers_api, verify=False, timeout=10)
+        
+        if response.status_code != 200:
+            print(f"Server returned status: {response.status_code}")
+            return None
+            
         data = response.json()
         
         result = {
@@ -31,19 +53,22 @@ def get_lotto_data():
         return None
 
 # ==========================================
-# 2. [NEW] 오늘의 행운 정보 생성 함수
+# 2. [수정됨] 오늘의 행운 정보 (태국 시간 기준)
 # ==========================================
 def get_daily_lucky_info():
-    weekday = datetime.datetime.now().weekday()
+    # 📌 핵심 수정: 서버 시간이 아닌 '태국 시간' 기준으로 요일 계산
+    tz_bkk = pytz.timezone('Asia/Bangkok')
+    now_bkk = datetime.datetime.now(tz_bkk)
+    weekday = now_bkk.weekday()  # 0:월요일 ~ 6:일요일
     
     daily_data = [
-        {"day": "วันจันทร์", "color_name": "เหลือง", "color_code": "#FFD700", "car_num": "2, 5"},
-        {"day": "วันอังคาร", "color_name": "ชมพู", "color_code": "#FF69B4", "car_num": "3, 0"},
-        {"day": "วันพุธ", "color_name": "เขียว", "color_code": "#4CAF50", "car_num": "4, 8"},
-        {"day": "วันพฤหัสบดี", "color_name": "ส้ม", "color_code": "#FF9800", "car_num": "1, 5"},
-        {"day": "วันศุกร์", "color_name": "ฟ้า", "color_code": "#00BFFF", "car_num": "6, 9"},
-        {"day": "วันเสาร์", "color_name": "ม่วง", "color_code": "#9C27B0", "car_num": "7, 3"},
-        {"day": "วันอาทิตย์", "color_name": "แดง", "color_code": "#F44336", "car_num": "1, 8"},
+        {"day": "วันจันทร์ (Monday)", "color_name": "เหลือง (Yellow)", "color_code": "#FFD700", "car_num": "2, 5"},
+        {"day": "วันอังคาร (Tuesday)", "color_name": "ชมพู (Pink)", "color_code": "#FF69B4", "car_num": "3, 0"},
+        {"day": "วันพุธ (Wednesday)", "color_name": "เขียว (Green)", "color_code": "#4CAF50", "car_num": "4, 8"},
+        {"day": "วันพฤหัสบดี (Thursday)", "color_name": "ส้ม (Orange)", "color_code": "#FF9800", "car_num": "1, 5"},
+        {"day": "วันศุกร์ (Friday)", "color_name": "ฟ้า (Blue)", "color_code": "#00BFFF", "car_num": "6, 9"},
+        {"day": "วันเสาร์ (Saturday)", "color_name": "ม่วง (Purple)", "color_code": "#9C27B0", "car_num": "7, 3"},
+        {"day": "วันอาทิตย์ (Sunday)", "color_name": "แดง (Red)", "color_code": "#F44336", "car_num": "1, 8"},
     ]
     
     today_info = daily_data[weekday]
@@ -73,9 +98,10 @@ def get_daily_lucky_info():
     '''
 
 # ==========================================
-# 3. 통계 HTML 생성 함수
+# 3. 통계 HTML (변경 없음, 그대로 사용)
 # ==========================================
 def create_stats_html():
+    # ... (기존 코드와 동일)
     stats_data = {
         'hot_numbers': [(79, 9), (85, 8), (98, 8)],
         'cold_numbers': [(3, 1), (17, 2)],
@@ -140,13 +166,15 @@ def create_stats_html():
     '''
 
 # ==========================================
-# 4. 전체 HTML 조립 (SNS 버튼 + 궁합 버튼 추가)
+# 4. 전체 HTML 조립 (OG 태그 추가 및 광고 최적화)
 # ==========================================
 def create_html(data):
     if not data:
         return "<h1>Data Error / กำลังปรับปรุงระบบ</h1>"
 
-    now = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+    # 태국 시간 기준 업데이트 시간 표시
+    tz_bkk = pytz.timezone('Asia/Bangkok')
+    now = datetime.datetime.now(tz_bkk).strftime("%d/%m/%Y %H:%M")
     
     first_balls_html = "".join([f'<div class="ball ball-1st" role="listitem">{char}</div>' for char in data['first']])
     last2_balls_html = "".join([f'<div class="ball ball-2nd" role="listitem">{char}</div>' for char in data['last2']])
@@ -160,24 +188,31 @@ def create_html(data):
 
     stats_section_html = create_stats_html()
     daily_lucky_html = get_daily_lucky_info()
+    
+    # 📌 [NEW] 사이트 URL (본인 도메인으로 수정하세요)
+    my_site_url = "https://lottery.spattra.com"
 
     html = f"""
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ตรวจหวย - ผลสลากกินแบ่งรัฐบาล</title>
-    <meta name="description" content="ตรวจหวย ผลสลากกินแบ่งรัฐบาลล่าสุด ตรวจหวยย้อนหลัง เลขเด็ด สถิติหวย อัปเดตฟรีรวดเร็วทันใจ">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎱</text></svg>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ตรวจหวย {data['date']} - ผลสลากกินแบ่งรัฐบาลล่าสุด</title>
+    <meta name="description" content="ตรวจผลสลากกินแบ่งรัฐบาล งวดวันที่ {data['date']} รางวัลที่ 1 คือ {data['first']} เลขท้าย 2 ตัว คือ {data['last2']} ตรวจหวยย้อนหลังฟรี">
     
-    <!-- 아이콘 -->
+    <!-- 📌 [NEW] Open Graph (SNS 공유 시 썸네일/제목 설정) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="📢 ผลหวยงวด {data['date']} ออกแล้ว!">
+    <meta property="og:description" content="รางวัลที่ 1: {data['first']} | เลขท้าย 2 ตัว: {data['last2']}">
+    <meta property="og:image" content="{my_site_url}/og-image.png">
+    <meta property="og:url" content="{my_site_url}">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎱</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-
+    
     <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3198582468837090"
-         crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3198582468837090" crossorigin="anonymous"></script>
 
     <style>
         :root {{
@@ -195,52 +230,55 @@ def create_html(data):
             --text-primary: #ffffff;
             --text-secondary: rgba(255, 255, 255, 0.7);
             --text-muted: rgba(255, 255, 255, 0.5);
-            --ad-bg: rgba(255, 255, 255, 0.03);
-            --ad-border: rgba(212, 175, 55, 0.3);
         }}
 
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{ font-family: 'Sarabun', sans-serif; background: var(--bg-gradient); min-height: 100vh; color: var(--text-primary); overflow-x: hidden; }}
+        
         .layout-wrapper {{ display: flex; justify-content: center; align-items: flex-start; gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; }}
         .side-rail {{ width: 160px; height: 600px; position: sticky; top: 20px; display: none; }}
-        .main-content {{ flex: 1; max-width: 480px; width: 100%; }}
+        
+        /* 📌 [NEW] 모바일 최적화 (너비 제한 완화) */
+        .main-content {{ flex: 1; max-width: 500px; width: 100%; }}
+        
         @media (min-width: 1024px) {{ .side-rail {{ display: block; }} }}
         @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');
         
         .glass-card {{ background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 24px; box-shadow: var(--glass-shadow); margin-bottom: 20px; }}
+        
         .header h1 {{ font-size: 1.6em; font-weight: 700; background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; text-align: center; }}
         .header .date {{ display: block; text-align: center; color: var(--text-secondary); margin-bottom: 20px; }}
         .header .emoji {{ display: block; text-align: center; font-size: 1.5em; margin-bottom: 5px; }}
+        
         .result-section {{ text-align: center; margin-bottom: 24px; }}
         .result-label {{ display: inline-block; font-size: 0.9em; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; padding: 4px 16px; background: rgba(255,255,255,0.05); border-radius: 20px; }}
+        
         .balls-container {{ display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }}
-        .ball {{ width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2em; color: #1a1a1a; box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.4); }}
-        .ball-1st {{ background: var(--ball-1st); width: 52px; height: 52px; }}
+        .ball {{ width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1em; color: #1a1a1a; box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.4); }}
+        .ball-1st {{ background: var(--ball-1st); width: 48px; height: 48px; }}
         .ball-2nd {{ background: var(--ball-2nd); color: white; }}
         .ball-3rd {{ background: var(--ball-3rd); }}
 
+        /* 럭키 섹션 스타일 */
         .lucky-daily-section {{ background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; margin: 20px 0; }}
         .lucky-header {{ display: flex; align-items: center; gap: 8px; margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 10px; }}
-        .lucky-header h3 {{ font-size: 1.1em; margin: 0; color: var(--text-primary); }}
         .lucky-content {{ display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }}
         .lucky-item {{ background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 12px; text-align: center; }}
         .lucky-label {{ font-size: 0.8em; color: var(--text-muted); display: block; margin-bottom: 5px; }}
-        .lucky-value {{ font-size: 0.95em; font-weight: bold; color: var(--gold-light); display: flex; align-items: center; justify-content: center; gap: 6px; }}
+        .lucky-value {{ font-size: 0.95em; font-weight: bold; color: #f4e5b2; display: flex; align-items: center; justify-content: center; gap: 6px; }}
         .color-circle {{ width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,0.3); }}
 
-        .stats-section {{ background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 24px; box-shadow: var(--glass-shadow); margin-top: 16px; }}
+        /* 통계 섹션 스타일 */
+        .stats-section {{ background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 24px; margin-top: 16px; }}
         .stats-header {{ display: flex; align-items: center; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 10px; }}
-        .stats-header h3 {{ font-size: 1.1em; color: var(--text-primary); margin: 0; }}
         .hot-cold-container {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }}
-        .hot-section, .cold-section {{ padding: 16px; border-radius: 16px; text-align: center; }}
-        .hot-section {{ background: rgba(255, 87, 51, 0.1); border: 1px solid rgba(255, 87, 51, 0.3); }}
-        .cold-section {{ background: rgba(0, 188, 212, 0.1); border: 1px solid rgba(0, 188, 212, 0.3); }}
-        .section-label {{ font-size: 0.8em; font-weight: bold; margin-bottom: 10px; display: block; }}
-        .stats-balls {{ display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; }}
-        .stat-ball {{ width: 36px; height: 36px; font-size: 0.9em; }}
+        .hot-section {{ background: rgba(255, 87, 51, 0.1); border: 1px solid rgba(255, 87, 51, 0.3); padding: 10px; border-radius: 12px; text-align:center; }}
+        .cold-section {{ background: rgba(0, 188, 212, 0.1); border: 1px solid rgba(0, 188, 212, 0.3); padding: 10px; border-radius: 12px; text-align:center; }}
+        .stats-balls {{ display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }}
+        .stat-ball {{ width: 30px; height: 30px; font-size: 0.8em; display:flex; align-items:center; justify-content:center; border-radius:50%; }}
         .stat-ball.hot {{ background: linear-gradient(145deg, #ffab40, #e65100); color: black; }}
         .stat-ball.cold {{ background: linear-gradient(145deg, #4dd0e1, #00838f); color: white; }}
-        .frequency-label {{ font-size: 0.6em; display: block; color: var(--text-muted); margin-top: 2px; }}
+        
         .mini-chart {{ margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); }}
         .chart-bar-row {{ display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }}
         .chart-label {{ width: 20px; font-size: 0.8em; text-align: right; }}
@@ -249,37 +287,34 @@ def create_html(data):
         .chart-bar-fill.hot {{ background: #ff6d00; }}
         .chart-bar-fill.warm {{ background: #ffc107; }}
         .chart-bar-fill.neutral {{ background: #8bc34a; }}
-        .chart-value {{ width: 40px; font-size: 0.7em; color: var(--text-muted); }}
-        .stats-footer {{ margin-top: 10px; font-size: 0.7em; color: var(--text-muted); text-align: center; }}
         
-        .footer {{ text-align: center; padding: 20px; font-size: 0.75em; color: var(--text-muted); }}
-        .footer a {{ color: var(--gold-primary); text-decoration: none; }}
-        .ad-container {{ background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px; display: flex; justify-content: center; align-items: center; min-height: 100px; }}
-        .ad-label {{ display: block; text-align: right; font-size: 0.6em; color: var(--text-muted); margin-bottom: 5px; }}
-
-        /* [NEW] SNS 버튼 스타일 */
+        /* SNS 공유 버튼 */
         .share-section-home {{ text-align: center; margin: 30px 0 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }}
         .share-title {{ color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 12px; }}
         .share-buttons {{ display: flex; gap: 12px; justify-content: center; }}
-        .share-btn {{ width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; color: white; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.1); cursor: pointer; transition: all 0.3s ease; font-size: 1.2rem; }}
-        .share-btn:hover {{ transform: translateY(-3px) scale(1.05); }}
-        .share-facebook:hover {{ background: #1877F2; border-color: #1877F2; box-shadow: 0 0 15px rgba(24,119,242,0.5); }}
-        .share-line:hover {{ background: #06C755; border-color: #06C755; box-shadow: 0 0 15px rgba(6,199,85,0.5); }}
-        .share-twitter:hover {{ background: #000; border-color: #333; box-shadow: 0 0 15px rgba(255,255,255,0.3); }}
-        .share-copy:hover {{ background: #a855f7; border-color: #a855f7; box-shadow: 0 0 15px rgba(168,85,247,0.5); }}
-        .copy-toast {{ position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(16,185,129,0.9); color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; opacity: 0; visibility: hidden; transition: all 0.3s; z-index: 1000; backdrop-filter: blur(5px); }}
+        .share-btn {{ width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; color: white; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); transition: all 0.3s ease; font-size: 1.2rem; cursor: pointer; }}
+        .share-btn:hover {{ transform: scale(1.1); }}
+        .share-facebook {{ background: #1877F2; }}
+        .share-line {{ background: #06C755; }}
+        .share-twitter {{ background: #000000; }}
+        
+        .copy-toast {{ position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(16,185,129,0.9); color: white; padding: 10px 20px; border-radius: 20px; opacity: 0; visibility: hidden; transition: all 0.3s; z-index: 1000; }}
         .copy-toast.show {{ opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }}
 
-        /* [NEW] 궁합 버튼 스타일 */
+        /* 궁합 버튼 */
         .btn-zodiac {{ display: block; background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: white; text-decoration: none; padding: 15px; border-radius: 15px; font-weight: bold; text-align: center; margin: 20px 0; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); transition: transform 0.2s; }}
         .btn-zodiac:hover {{ transform: translateY(-3px); }}
+
+        .footer {{ text-align: center; padding: 20px; font-size: 0.75em; color: var(--text-muted); }}
+        .ad-container {{ background: rgba(255,255,255,0.02); border-radius: 12px; overflow: hidden; margin: 20px 0; text-align: center; }}
+        .ad-label {{ font-size: 0.6em; color: #555; text-align: right; padding-right: 5px; }}
     </style>
 </head>
 <body>
 
 <div class="layout-wrapper">
     <aside class="side-rail">
-        <div class="ad-label">Advertisement</div>
+        <div class="ad-label">AD</div>
         <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3198582468837090" data-ad-slot="5807274060" data-ad-format="auto" data-full-width-responsive="true"></ins>
         <script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script>
     </aside>
@@ -310,39 +345,38 @@ def create_html(data):
 
         {daily_lucky_html}
 
-        <div class="ad-container" style="margin-bottom: 20px;">
+        <div class="ad-container">
+             <div class="ad-label">AD</div>
              <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3198582468837090" data-ad-slot="5807274060" data-ad-format="auto" data-full-width-responsive="true"></ins>
             <script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script>
         </div>
 
         {stats_section_html}
 
-        <!-- [NEW] 궁합 사이트 홍보 버튼 -->
         <a href="https://zodiac.spattra.com" target="_blank" class="btn-zodiac">
             💘 เช็คดวงความรัก <br>
             <span style="font-size:0.9em; opacity:0.9;">12 นักษัตร ชาย-หญิง / LGBTQ+</span>
         </a>
 
-        <!-- [NEW] SNS 공유 섹션 -->
         <div class="share-section-home">
             <p class="share-title">แชร์ให้เพื่อน</p>
             <div class="share-buttons">
                 <a href="https://www.facebook.com/sharer/sharer.php?u=" onclick="this.href+=encodeURIComponent(window.location.href);return true;" target="_blank" class="share-btn share-facebook"><i class="fab fa-facebook-f"></i></a>
                 <a href="https://social-plugins.line.me/lineit/share?url=" onclick="this.href+=encodeURIComponent(window.location.href);return true;" target="_blank" class="share-btn share-line"><i class="fab fa-line"></i></a>
                 <a href="https://twitter.com/intent/tweet?url=" onclick="this.href+=encodeURIComponent(window.location.href)+'&text='+encodeURIComponent(document.title);return true;" target="_blank" class="share-btn share-twitter"><i class="fab fa-x-twitter"></i></a>
-                <button onclick="copyLink()" class="share-btn share-copy"><i class="fas fa-link"></i></button>
+                <button onclick="copyLink()" class="share-btn share-copy" title="Copy Link"><i class="fas fa-link"></i></button>
             </div>
             <div id="copy-toast" class="copy-toast">✅ คัดลอกแล้ว!</div>
         </div>
 
         <footer class="footer">
-            <p>อัปเดตอัตโนมัติ: {now}</p>
-            <p>Powered by <a href="#">LotteryBot</a></p>
+            <p>อัปเดต: {now} (เวลาไทย)</p>
+            <p>© 2025 Lottery Result Thailand</p>
         </footer>
     </div>
 
     <aside class="side-rail">
-        <div class="ad-label">Advertisement</div>
+        <div class="ad-label">AD</div>
         <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3198582468837090" data-ad-slot="5807274060" data-ad-format="auto" data-full-width-responsive="true"></ins>
         <script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script>
     </aside>
@@ -355,6 +389,8 @@ def create_html(data):
             const t = document.getElementById('copy-toast');
             t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 2000);
+        }}).catch(err => {{
+            alert('URL Copy Failed');
         }});
     }}
 </script>
@@ -367,13 +403,16 @@ def create_html(data):
 # --- 메인 실행 ---
 if __name__ == "__main__":
     print("Collecting data...")
-    data = get_lotto_data()
-    
-    if data:
-        print(f"Success! Date: {data['date']}")
-        html = create_html(data)
-        with open("index.html", "w", encoding="utf-8") as f:
-            f.write(html)
-        print("index.html created successfully.")
-    else:
-        print("Failed to collect data.")
+    try:
+        data = get_lotto_data()
+        
+        if data:
+            print(f"Success! Date: {data['date']}")
+            html = create_html(data)
+            with open("index.html", "w", encoding="utf-8") as f:
+                f.write(html)
+            print("index.html created successfully.")
+        else:
+            print("Failed to collect data.")
+    except Exception as e:
+        print(f"Fatal Error: {e}")
