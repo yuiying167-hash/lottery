@@ -310,24 +310,24 @@ def create_html(data):
         .ad-label {{ font-size: 0.6em; color: #555; text-align: right; padding-right: 5px; }}
     
         /* 👇 모바일(좁은 화면) 전용 스타일 추가 */
-        @media (max-width: 480px) {
-         .ball {
+        @media (max-width: 480px) {{
+         .ball {{
         width: 38px;  /* 기본 크기보다 작게 */
         height: 38px;
         font-size: 1em;
-        }
+        }}
     
         /* 1등 공(금색)은 조금 더 커도 됨, 하지만 기존보다는 작게 */
-        .ball-1st {
+        .ball-1st {{
         width: 42px;
         height: 42px;
-        }
+        }}
      
         /* 메인 카드 여백도 살짝 줄여서 공간 확보 */
-       .glass-card {
+       .glass-card {{
         padding: 20px 10px; /* 좌우 패딩을 10px로 줄임 */
-        }
-        }
+        }}
+        }}
     
     
     </style>
