@@ -62,13 +62,13 @@ def get_daily_lucky_info():
     weekday = now_bkk.weekday()  # 0:월요일 ~ 6:일요일
     
     daily_data = [
-        {"day": "วันจันทร์ (Monday)", "color_name": "เหลือง (Yellow)", "color_code": "#FFD700", "car_num": "2, 5"},
-        {"day": "วันอังคาร (Tuesday)", "color_name": "ชมพู (Pink)", "color_code": "#FF69B4", "car_num": "3, 0"},
-        {"day": "วันพุธ (Wednesday)", "color_name": "เขียว (Green)", "color_code": "#4CAF50", "car_num": "4, 8"},
-        {"day": "วันพฤหัสบดี (Thursday)", "color_name": "ส้ม (Orange)", "color_code": "#FF9800", "car_num": "1, 5"},
-        {"day": "วันศุกร์ (Friday)", "color_name": "ฟ้า (Blue)", "color_code": "#00BFFF", "car_num": "6, 9"},
-        {"day": "วันเสาร์ (Saturday)", "color_name": "ม่วง (Purple)", "color_code": "#9C27B0", "car_num": "7, 3"},
-        {"day": "วันอาทิตย์ (Sunday)", "color_name": "แดง (Red)", "color_code": "#F44336", "car_num": "1, 8"},
+        {"day": "วันจันทร์", "color_name": "เหลือง", "color_code": "#FFD700", "car_num": "2, 5"},
+        {"day": "วันอังคาร", "color_name": "ชมพู", "color_code": "#FF69B4", "car_num": "3, 0"},
+        {"day": "วันพุธ", "color_name": "เขียว", "color_code": "#4CAF50", "car_num": "4, 8"},
+        {"day": "วันพฤหัสบดี", "color_name": "ส้ม", "color_code": "#FF9800", "car_num": "1, 5"},
+        {"day": "วันศุกร์", "color_name": "ฟ้า", "color_code": "#00BFFF", "car_num": "6, 9"},
+        {"day": "วันเสาร์", "color_name": "ม่วง", "color_code": "#9C27B0", "car_num": "7, 3"},
+        {"day": "วันอาทิตย์", "color_name": "แดง", "color_code": "#F44336", "car_num": "1, 8"},
     ]
     
     today_info = daily_data[weekday]
