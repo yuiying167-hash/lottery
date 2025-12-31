@@ -33,7 +33,7 @@ jobs:
       
       # 3. 필요한 라이브러리 설치
       - name: Install libraries
-        run: pip install requests
+        run: pip install requests pytz
 
       # 4. 파이썬 로봇 실행 (main.py)
       - name: Run crawler script
