@@ -59,7 +59,7 @@
         .result-section { text-align: center; margin-bottom: 24px; }
         .result-label { display: inline-block; font-size: 0.9em; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; padding: 4px 16px; background: rgba(255,255,255,0.05); border-radius: 20px; }
         
-        .balls-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
+        .balls-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; }
         .ball { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1em; color: #1a1a1a; box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.4); }
         .ball-1st { background: var(--ball-1st); width: 48px; height: 48px; }
         .ball-2nd { background: var(--ball-2nd); color: white; }
@@ -114,6 +114,28 @@
         .footer { text-align: center; padding: 20px; font-size: 0.75em; color: var(--text-muted); }
         .ad-container { background: rgba(255,255,255,0.02); border-radius: 12px; overflow: hidden; margin: 20px 0; text-align: center; }
         .ad-label { font-size: 0.6em; color: #555; text-align: right; padding-right: 5px; }
+    
+        /* 👇 모바일(좁은 화면) 전용 스타일 추가 */
+        @media (max-width: 480px) {
+         .ball {
+        width: 38px;  /* 기본 크기보다 작게 */
+        height: 38px;
+        font-size: 1em;
+        }
+    
+        /* 1등 공(금색)은 조금 더 커도 됨, 하지만 기존보다는 작게 */
+        .ball-1st {
+        width: 42px;
+        height: 42px;
+        }
+     
+        /* 메인 카드 여백도 살짝 줄여서 공간 확보 */
+       .glass-card {
+        padding: 20px 10px; /* 좌우 패딩을 10px로 줄임 */
+        }
+        }
+    
+    
     </style>
 </head>
 <body>
@@ -153,14 +175,14 @@
     <section class="lucky-daily-section">
         <div class="lucky-header">
             <span class="emoji">🍀</span>
-            <h3>ดวงประจำวัน: วันพุธ (Wednesday)</h3>
+            <h3>ดวงประจำวัน: วันพุธ</h3>
         </div>
         <div class="lucky-content">
             <div class="lucky-item">
                 <span class="lucky-label">สีมงคล</span>
                 <div class="lucky-value">
                     <span class="color-circle" style="background-color: #4CAF50;"></span>
-                    เขียว (Green)
+                    เขียว
                 </div>
             </div>
             <div class="lucky-item">
@@ -285,7 +307,7 @@
         </div>
 
         <footer class="footer">
-            <p>อัปเดต: 31/12/2025 07:59 (เวลาไทย)</p>
+            <p>อัปเดต: 31/12/2025 10:09 (เวลาไทย)</p>
             <p>© 2025 Lottery Result Thailand</p>
         </footer>
     </div>
